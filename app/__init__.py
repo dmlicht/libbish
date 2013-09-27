@@ -9,4 +9,4 @@ db = SQLAlchemy(app)
 def init_db():
     db.create_all()
 
-    from app import views
+from app import views

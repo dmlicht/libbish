@@ -33,13 +33,18 @@ class DBTestCase(unittest.TestCase):
         app.db.session.rollback()
 
     def create_should_succeed_with(self, model, *args, **kwargs):
-        """tries to add instance to model.
+        """returns newly created object
+        tries to add instance to model.
         checks for success, KEEPS added element in database"""
         start_count = model.query.count()
+        self.create_and_commit(model, *args, **kwargs)
+        self.assertEqual(model.query.count(), start_count + 1)
+
+    def create_and_commit(self, model, *args, **kwargs):
         new_instance = model(*args, **kwargs)
         app.db.session.add(new_instance)
         app.db.session.commit()
-        self.assertEqual(model.query.count(), start_count + 1)
+        return new_instance
 
     def setUp(self):
         app.db.create_all()
@@ -110,6 +115,47 @@ class TestUser(DBTestCase):
 
     def test_cannot_create_user_whitespace_username(self):
         self.create_should_fail_with(User, "    ")
+
+class TestUserBooks(DBTestCase):
+    def create_relation(self):
+        user = self.create_and_commit(User, "uname")
+        book = self.create_and_commit(Book, "title", "auth")
+        user.add(book)
+        app.db.session.commit()
+        return user, book
+
+    def test_create_book_from_user(self):
+        user, _ = self.create_relation()
+        self.assertEquals(UserBook.query.count(), 1)
+
+    def test_user_can_access_book(self):
+        user, book = self.create_relation()
+        self.assertTrue(book in user.books)
+
+    def test_book_can_access_user(self):
+        user, book = self.create_relation()
+        self.assertTrue(user in book.users)
+
+    def test_create_and_add(self):
+        user, _ = self.create_relation()
+        start_count = len(user.books)
+        user.create_and_add("other title", "other author")
+        app.db.session.commit()
+        self.assertEquals(len(user.books), start_count+1)
+
+    def test_create_and_add_should_not_create_new_if_book_exists(self):
+        user = self.create_and_commit(User, "uname")
+        book = self.create_and_commit(Book, "title", "auth")
+        start_count = Book.query.count()
+        user.create_and_add(book.title, book.author)
+        app.db.session.commit()
+        self.assertEqual(Book.query.count(), start_count)
+
+    def test_add_should_raise_except_if_assoc_exists(self):
+        user, book = self.create_relation()
+        with self.assertRaises(Exception):
+            user.add(book)
+            app.db.session.commit()
 
 if __name__ == '__main__':
     unittest.main()
