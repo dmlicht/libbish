@@ -3,7 +3,7 @@ from app.models import User, Book, UserBook
 from flask import render_template, request, redirect, url_for, session, jsonify
 from helpers import filter_factory
 
-@app.route('/hello')
+@app.route('/')
 def hello():
     return 'Hello World!'
 
