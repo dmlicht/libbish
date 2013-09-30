@@ -10,6 +10,7 @@ def hello():
 @app.route('/books', methods=['GET', ])
 def get_books():
     query = Book.query.all()
+    print 'here'
     return jsonify({'books': [book.to_dict() for book in query]})
 
 @app.route('/books', methods=['POST', ])
