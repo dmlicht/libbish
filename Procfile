@@ -1,1 +1,1 @@
-web: gunicorn hello:app
+wbu: gunicorn run:app
