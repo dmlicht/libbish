@@ -21,7 +21,7 @@ class Book(db.Model):
         self.author = author
 
     def to_dict(self):
-        """get dictionary representation of object without members"""
+        """returns dictionary representation of Book without database members"""
         return {'id': self.id, 'title': self.title, 'author': self.author}
 
 class UserBook(db.Model):
@@ -29,7 +29,7 @@ class UserBook(db.Model):
     __tablename__ = 'user_book'
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     book_id = db.Column(db.Integer, db.ForeignKey('book.id'), primary_key=True)
-    #NOTE: REMEMBER TO SET CONSTRAINTS WHEN YOU HAVE INTERNET
+    #TODO: set constraints on progress values
     progress = db.Column(db.String(80)) #unread, in progress, read
 
     user = db.relationship("User", backref="book_assocs")
@@ -61,4 +61,5 @@ class User(db.Model):
         self.username = username
 
     def to_dict(self):
+        """returns dictionary representation of User without database members"""
         return {'id': self.id, 'username': self.username}
