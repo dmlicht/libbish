@@ -68,27 +68,5 @@ class TestViews(unittest.TestCase):
         response_dict = json.loads(response.data)
         self.assertEqual(len(response_dict['books']), 100)
 
-    def test_get_user_by_id(self):
-        """should return a user and all associated books"""
-        user = models.User("name")
-        db.session.add(user)
-        db.session.commit()
-        user_book_count = 10
-        other_book_count = 90
-        total_book_count = user_book_count + other_book_count
-        for i in xrange(user_book_count):
-            user.create_and_add("title"+str(i), "author"+str(i))
-        for i in xrange(other_book_count):
-            db.session.add(models.Book("other_title"+str(i), "other_author"+str(i)))
-            db.session.commit()
-        response = self.test_client.get('/books')
-        response_dict = json.loads(response.data)
-        self.assertEqual(len(response_dict['books']), total_book_count)
-        print 'got here'
-        response = self.test_client.get('/users/'+str(user.id))
-        response_dict = json.loads(response.data)
-        self.assertEqual(response_dict['user']['id'], user.id)
-        self.assertEqual(len(response_dict['user']['books']['unread'], user_book_count))
-
 if __name__ == "__main__":
     unittest.main()
