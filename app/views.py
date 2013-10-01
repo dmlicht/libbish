@@ -10,21 +10,20 @@ def hello():
 @app.route('/books', methods=['GET', ])
 def get_books():
     query = Book.query.all()
-    print 'here'
     return jsonify({'books': [book.to_dict() for book in query]})
 
 @app.route('/books', methods=['POST', ])
 def post_book():
-    if request.args['title'] and request.args['author']:
-        db.session.add(Book(request.args['title'], request.args['author']))
+    if request.form['title'] and request.form['author']:
+        db.session.add(Book(request.form['title'], request.form['author']))
         db.session.commit()
     else:
         return "UNIMPLEMENTED ERROR HANDLING"
     return 'OK'
 
-@app.route('/books/<int:id>', methods=['GET', ])
-def get_book():
-    book = Book.query.get(id)
+@app.route('/books/<int:book_id>', methods=['GET', ])
+def get_book(book_id):
+    book = Book.query.get(book_id)
     if book:
         return jsonify({'book':book.to_dict()})
     else:
@@ -37,32 +36,36 @@ def get_users():
 
 @app.route('/users', methods=['POST', ])
 def post_user():
-    if request.args['username']:
-        db.session.add(User(request.args['username']))
+    if request.form['username']:
+        db.session.add(User(request.form['username']))
         db.session.commit()
         return "OK"
     else:
         return "UMIMPLEMENTED ERROR HANDLING"
 
-@app.route('/users/<int:id>', methods=['GET', ])
-def get_user(id):
-    user = User.query.get(id)
+@app.route('/users/<int:user_id>', methods=['GET', ])
+def get_user(user_id):
+    user = User.query.get(user_id)
     return jsonify({'user': user.to_dict()})
 
-@app.route('/users/<int:id>/books', methods=['GET', ])
-def get_user_books(id):
-    user = User.query.get(id)
+@app.route('/users/<int:user_id>/books', methods=['GET', ])
+def get_user_books(user_id):
+    user = User.query.get(user_id)
     if not user:
         return "UNIMPLEMENTED ERROR HANDLING"
     my_filter = filter_factory(request.args['read_state'], 'state')
     books_dicts = [assoc.book for assoc in user.book_assocs if my_filter(assoc)]
     return jsonify({'books': books_dicts})
 
-@app.route('/users/<int:id>/books', methods=['POST', ])
-def post_user_book(id):
-    user = User.query.get(id)
-    if request.args['book_id'] and user:
-        book = Book.query.get(int(request.args['book_id']))
+@app.route('/users/<int:user_id>/books/<int:book_id>', methods=['PUT'])
+def put_user_book(user_id, book_id):
+    pass
+
+@app.route('/users/<int:user_id>/books', methods=['POST', ])
+def post_user_book(user_id):
+    user = User.query.get(user_id)
+    if request.form['book_id'] and user:
+        book = Book.query.get(int(request.form['book_id']))
         user.add(book)
         db.session.commit()
         return 'OK'
