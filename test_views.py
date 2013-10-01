@@ -1,6 +1,6 @@
 import os
 from app import app, db
-from app import models
+from app.models import User, Book, UserBook
 import unittest
 import tempfile
 import json
@@ -18,17 +18,19 @@ class TestViews(unittest.TestCase):
 
     def test_hello(self):
         """verifies basic test file configuration"""
-        response = self.test_client.get('/hello')
+        response = self.test_client.get('/')
         self.assertEqual(response.data, 'Hello World!')
 
     def test_create_user(self):
-        self.assertEqual(models.User.query.count(), 0)
-        self.test_client.post('/users?username=user1')
-        self.assertEqual(models.User.query.count(), 1)
+        self.assertEqual(User.query.count(), 0)
+        post_data = dict(username='user1')
+        self.test_client.post('/users', data=post_data)
+        self.assertEqual(User.query.count(), 1)
 
     def add_dummy_users(self, n):
         for i in xrange(n):
-            self.test_client.post('/users?username=user'+str(i))
+            post_data = dict(username='user'+str(i))
+            self.test_client.post('/users', data=post_data)
 
     def test_get_users(self):
         self.add_dummy_users(100)
@@ -45,9 +47,10 @@ class TestViews(unittest.TestCase):
         pass
 
     def test_create_book(self):
-        self.assertEqual(models.Book.query.count(), 0)
-        self.test_client.post('/books?title=thetitle&author=theauthor')
-        self.assertEqual(models.Book.query.count(), 1)
+        self.assertEqual(Book.query.count(), 0)
+        post_data = dict(title="the title", author="the author")
+        self.test_client.post('/books', data=post_data)
+        self.assertEqual(Book.query.count(), 1)
 
     #TODO
     def test_create_book_bad_input(self):
@@ -60,13 +63,26 @@ class TestViews(unittest.TestCase):
     def add_dummy_books(self, n):
         """add n dummy books"""
         for i in xrange(n):
-            self.test_client.post('/books?title=thetitle'+str(i)+'&author=theauthor'+str(i))
+            post_data = dict(title="the title"+str(i), author="the author"+str(i))
+            self.test_client.post('/books', data=post_data)
 
     def test_get_books(self):
         self.add_dummy_books(100)
         response = self.test_client.get('/books')
         response_dict = json.loads(response.data)
         self.assertEqual(len(response_dict['books']), 100)
+
+    def test_associate_book(self):
+        user = User('my_user')
+        book = Book('my_title', 'my_author')
+        db.session.add(user)
+        db.session.add(book)
+        db.session.commit()
+        post_data = dict(book_id=book.id)
+        url = '/users/' + str(user.id) + '/books'
+        self.test_client.post(url, data=post_data)
+        response = self.test_client.get(url)
+
 
 if __name__ == "__main__":
     unittest.main()
