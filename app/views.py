@@ -53,8 +53,7 @@ def get_user_books(user_id):
     user = User.query.get(user_id)
     if not user:
         return "UNIMPLEMENTED ERROR HANDLING"
-    my_filter = filter_factory(request.args['read_state'], 'state')
-    books_dicts = [assoc.book for assoc in user.book_assocs if my_filter(assoc)]
+    books_dicts = [book.to_dict() for book in user.books]
     return jsonify({'books': books_dicts})
 
 @app.route('/users/<int:user_id>/books/<int:book_id>', methods=['PUT'])

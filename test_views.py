@@ -82,6 +82,8 @@ class TestViews(unittest.TestCase):
         url = '/users/' + str(user.id) + '/books'
         self.test_client.post(url, data=post_data)
         response = self.test_client.get(url)
+        response_dict = json.loads(response.data)
+        self.assertEqual(len(response_dict['books']), 1)
 
 
 if __name__ == "__main__":
